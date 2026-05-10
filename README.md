@@ -1,0 +1,2 @@
+# Fitbit-Calorie-Burn-Prediction-Workout-Pattern-Clustering-Using-Fitbit-Data
+This project uses Machine Learning to predict calorie burn and analyze workout patterns from Fitbit data. It applies regression models for prediction and clustering techniques like KMeans for user segmentation. The system is built with Streamlit for an interactive user interface. It helps in fitness tracking and personalized workout insights.
