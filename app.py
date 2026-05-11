@@ -83,7 +83,7 @@ if page == "Dashboard":
         </style>
     """, unsafe_allow_html=True)
 
-    st.title("🚀 Fitbit Health Analytics & ML Dashboard")
+    st.title("🥗 🍎 Fitbit Health Analytics & ML Dashboard")
     st.write("Welcome! This platform leverages Advanced Machine Learning to decode fitness data, providing actionable insights for both users and fitness enterprises.")
 
     st.subheader("🎯 Project Objective")
@@ -152,7 +152,8 @@ elif page == "Supervised Learning":
         "MAE": [31.76, 31.75, 31.77, 27.69, 7.53, 3.65, 2.74, 5.15]
     }
     df_metrics = pd.DataFrame(metrics_data)
-    st.table(df_metrics)
+
+    st.table(df_metrics.style.hide(axis="index"))
 
     # --- BUSINESS INSIGHTS SECTION ---
     st.markdown('<p class="impact-header">💡 Strategic Business Insights</p>', unsafe_allow_html=True)
@@ -334,11 +335,16 @@ elif page == "Prediction Center":
 
     st.title("🎯 Calorie Burn Prediction")
     st.write("Enter your session details below to estimate calorie expenditure using our trained models.")
+    st.write("KNN is the optimal model among all trained models, while some models are available here for prediction comparison.")
 
     # -----------------------------------
     # 1. MODEL SELECTION & LAYOUT
     # -----------------------------------
-    selected_model = st.selectbox("Choose the ML Brain for Prediction", list(models.keys()))
+    # Create a list of only your top performers
+    optimal_models = ["KNN", "SVR", "Linear Regression", "Ridge Regression"]
+
+    # Update the selectbox to only use this list
+    selected_model = st.selectbox("Choose the ML Brain for Prediction", optimal_models)
     
     st.divider()
 
@@ -418,134 +424,134 @@ elif page == "Prediction Center":
         }])
 
         try:
-            # 3. SCALING & PREDICTION
-            # Most models perform better with scaled data; if your scaler was trained on all features:
-            input_scaled = scaler.transform(input_data)
-            
-            model = models[selected_model]
-            prediction = model.predict(input_scaled)[0]
+           # 3. SCALING & PREDICTION
+          input_scaled = scaler.transform(input_data)
+    
+          model = models[selected_model]
+          prediction = model.predict(input_scaled)[0]
 
-            # 4. DISPLAY RESULT
-            st.markdown(f"""
-                <div class="result-card">
-                    <p style="color: #D35400; font-size: 20px; margin-bottom: 0;">Estimated Energy Expenditure</p>
-                    <h1 style="color: #D35400; margin-top: 0;">{prediction:.2f} kcal</h1>
-                    <p style="font-style: italic;">Results calculated using {selected_model}</p>
-                </div>
-            """, unsafe_allow_html=True)
+          # Use abs() to remove the negative sign if it exists
+          display_prediction = abs(prediction)
+
+          # 4. DISPLAY RESULT
+          st.markdown(f"""
+        <div class="result-card">
+            <p style="color: #D35400; font-size: 20px; margin-bottom: 0;">Estimated Energy Expenditure</p>
+            <h1 style="color: #D35400; margin-top: 0;">{display_prediction:.2f} kcal</h1>
+            <p style="font-style: italic;">Results calculated using {selected_model}</p>
+        </div>
+         """, unsafe_allow_html=True)
 
         except Exception as e:
-            st.error(f"Error in prediction: {e}. Please ensure your feature names match the model training.")
-
-    st.divider()
+         st.error(f"Error in prediction: {e}.")
 # ===================================================
 # PAGE 4: PREDICTION CENTER - CLUSTER PREDICTION
 # ===================================================
-st.divider()
-st.markdown('<p class="predict-header">🎯 Workout Cluster Identification</p>', unsafe_allow_html=True)
-st.write("Determine which Fitness Cluster you belong to based on your physiological and activity profile.")
+    st.divider()
+    st.markdown('<p class="predict-header">🎯 Workout Cluster Identification</p>', unsafe_allow_html=True)
+    st.write("Determine which Fitness Cluster you belong to based on your physiological and activity profile.")
 
-# 1. INPUT GRID FOR USER DATA
-cl_col1, cl_col2, cl_col3 = st.columns(3)
+    # 1. INPUT GRID FOR USER DATA
+    cl_col1, cl_col2, cl_col3 = st.columns(3)
 
-with cl_col1:
-    c_age = st.number_input("Age", 18, 80, 25, key="ca")
-    c_weight = st.number_input("Weight (kg)", 30.0, 150.0, 70.0, key="cw")
-    c_height = st.number_input("Height (m)", 1.3, 2.5, 1.75, key="ch")
+    with cl_col1:
+       c_age = st.number_input("Age", 18, 80, 25, key="ca")
+       c_weight = st.number_input("Weight (kg)", 30.0, 150.0, 70.0, key="cw")
+       c_height = st.number_input("Height (m)", 1.3, 2.5, 1.75, key="ch")
 
-with cl_col2:
-    c_avg = st.number_input("Avg BPM", 50, 220, 110, key="cab")
-    c_max = st.number_input("Max BPM", 100, 220, 150, key="cmb")
-    c_duration = st.number_input("Duration (hrs)", 0.1, 5.0, 1.0, key="cd")
+    with cl_col2:
+       c_avg = st.number_input("Avg BPM", 50, 220, 110, key="cab")
+       c_max = st.number_input("Max BPM", 100, 220, 150, key="cmb")
+       c_duration = st.number_input("Duration (hrs)", 0.1, 5.0, 1.0, key="cd")
 
-with cl_col3:
-    c_resting = st.number_input("Resting BPM", 40, 120, 65, key="crb")
-    c_fat = st.slider("Fat %", 5.0, 50.0, 20.0, key="cfat")
-    c_freq = st.slider("Workouts/Week", 1, 7, 3, key="cfreq")
+    with cl_col3:
+       c_resting = st.number_input("Resting BPM", 40, 120, 65, key="crb")
+       c_fat = st.slider("Fat %", 5.0, 50.0, 20.0, key="cfat")
+       c_freq = st.slider("Workouts/Week", 1, 7, 3, key="cfreq")
 
-# 2. ALGORITHM SELECTION TABS
-st.write("### Select Clustering Algorithm")
-tab_km, tab_hi, tab_db = st.tabs(["📊 K-Means", "🌿 Hierarchical", "🕵️ DBSCAN"])
+    # 2. ALGORITHM SELECTION TABS
+    st.write("### Select Clustering Algorithm")
+    tab_km, tab_hi, tab_db = st.tabs(["📊 K-Means", "🌿 Hierarchical", "🕵️ DBSCAN"])
 
-# PRE-CALCULATION FOR NEW DATA POINT
-# (This logic is shared across all three tabs)
-bmi_val = c_weight / (c_height ** 2)
-hr_int = c_avg / c_max
-base_met_val = 7
-eff_met = base_met_val * hr_int
+    # PRE-CALCULATION FOR NEW DATA POINT
+    # (This logic is shared across all three tabs)
+    bmi_val = c_weight / (c_height ** 2)
+    hr_int = c_avg / c_max
+    base_met_val = 7
+    eff_met = base_met_val * hr_int
 
-new_user_row = pd.DataFrame([{
-    "Age": c_age, "Weight (kg)": c_weight, "Height (m)": c_height,
-    "Max_BPM": c_max, "Avg_BPM": c_avg, "Resting_BPM": c_resting,
-    "Session_Duration (hours)": c_duration, "Fat_Percentage": c_fat,
-    "Workout_Frequency (days/week)": c_freq, "BMI": bmi_val,
-    "Base_MET": base_met_val, "HR_Intensity": hr_int, "Effective_MET": eff_met
-}])
-# Ensure columns match exactly what the models were trained on
-new_user_row = new_user_row.reindex(columns=cluster_columns, fill_value=0)
+    new_user_row = pd.DataFrame([{
+      "Age": c_age, "Weight (kg)": c_weight, "Height (m)": c_height,
+      "Max_BPM": c_max, "Avg_BPM": c_avg, "Resting_BPM": c_resting,
+      "Session_Duration (hours)": c_duration, "Fat_Percentage": c_fat,
+      "Workout_Frequency (days/week)": c_freq, "BMI": bmi_val,
+      "Base_MET": base_met_val, "HR_Intensity": hr_int, "Effective_MET": eff_met
+    }])
+    # Ensure columns match exactly what the models were trained on
+    new_user_row = new_user_row.reindex(columns=cluster_columns, fill_value=0)
 
-# --- TAB 1: K-MEANS (Direct Prediction) ---
-with tab_km:
-    st.info("K-Means identifies personas by calculating the distance to saved cluster centers.")
-    if st.button("🚀 Identify Cluster (K-Means)", use_container_width=True):
-        # Scale -> PCA -> Predict
-        scaled_point = scaler_cluster.transform(new_user_row)
-        pca_point = pca_model.transform(scaled_point)
-        cluster_id = kmeans_model.predict(pca_point)[0]
+    # --- TAB 1: K-MEANS (Direct Prediction) ---
+    with tab_km:
+      st.info("K-Means identifies personas by calculating the distance to saved cluster centers.")
+      if st.button("🚀 Identify Cluster (K-Means)", use_container_width=True):
+          # Scale -> PCA -> Predict
+          scaled_point = scaler_cluster.transform(new_user_row)
+          pca_point = pca_model.transform(scaled_point)
+          cluster_id = kmeans_model.predict(pca_point)[0]
 
         # Persona Mapping
-        persona_map = {
-            0: {"name": "High Intensity Beginners", "color": "#E74C3C", "desc": "High physiological strain, short sessions. High growth potential."},
-            1: {"name": "Casual Fitness Enthusiasts", "color": "#F1C40F", "desc": "Consistent moderate activity. Focus on lifestyle maintenance."},
-            2: {"name": "Elite/Advanced Athletes", "color": "#27AE60", "desc": "Optimized performance metrics. High duration and intensity."},
-            3: {"name": "Balanced Lifestyle Users", "color": "#3498DB", "desc": "Steady and sustainable workout patterns."}
+          persona_map = {
+            0: {"name": "Cluster 0: High Intensity Beginners", "color": "#E74C3C", "desc": "High physiological strain, short sessions. High growth potential."},
+            1: {"name": "Cluster 1: Casual Fitness Enthusiasts", "color": "#F1C40F", "desc": "Consistent moderate activity. Focus on lifestyle maintenance."},
+            2: {"name": "Cluster 2: Elite/Advanced Athletes", "color": "#27AE60", "desc": "Optimized performance metrics. High duration and intensity."},
+            3: {"name": "Cluster 3: Balanced Lifestyle Users", "color": "#3498DB", "desc": "Steady and sustainable workout patterns."}
         }
-        res = persona_map.get(cluster_id, {"name": "Unknown", "color": "#7F8C8D", "desc": "No specific profile match."})
+          res = persona_map.get(cluster_id, {"name": "Unknown", "color": "#7F8C8D", "desc": "No specific profile match."})
 
-        st.markdown(f"""
-            <div style="background-color: {res['color']}; padding: 20px; border-radius: 15px; color: white; text-align: center;">
+          st.markdown(f"""
+             <div style="background-color: {res['color']}; padding: 20px; border-radius: 15px; color: white; text-align: center;">
                 <h2 style="margin: 0;">Persona Identified: {res['name']}</h2>
                 <p style="font-size: 18px; opacity: 0.9;">{res['desc']}</p>
-            </div>
-        """, unsafe_allow_html=True)
+             </div>
+            """, unsafe_allow_html=True)
 
-# --- TAB 2: HIERARCHICAL (Batch Re-fit) ---
-with tab_hi:
-    st.info("Hierarchical Clustering finds the user's place in the data 'family tree'.")
-    if st.button("🚀 Identify Cluster (Hierarchical)", use_container_width=True):
-        with st.spinner("Calculating Linkage..."):
-            # Combine original 'df' with the new row
-            combined_df = pd.concat([df[cluster_columns], new_user_row], ignore_index=True)
-            combined_scaled = scaler_cluster.transform(combined_df)
-            combined_pca = pca_model.transform(combined_scaled)
+    # --- TAB 2: HIERARCHICAL (Batch Re-fit) ---
+    with tab_hi:
+      st.info("Hierarchical Clustering finds the user's place in the data 'family tree'.")
+      if st.button("🚀 Identify Cluster (Hierarchical)", use_container_width=True):
+          with st.spinner("Calculating Linkage..."):
+              # Combine original 'df' with the new row
+              combined_df = pd.concat([df[cluster_columns], new_user_row], ignore_index=True)
+              combined_scaled = scaler_cluster.transform(combined_df)
+              combined_pca = pca_model.transform(combined_scaled)
 
-            # Re-fit (Hierarchical requires seeing all data points at once)
-            hi_model = AgglomerativeClustering(n_clusters=4)
-            all_labels = hi_model.fit_predict(combined_pca)
+             # Re-fit (Hierarchical requires seeing all data points at once)
+              hi_model = AgglomerativeClustering(n_clusters=4)
+              all_labels = hi_model.fit_predict(combined_pca)
             
-            user_label = all_labels[-1] # The last row is our new user
-            st.success(f"🎯 Hierarchical Cluster Identified: {user_label}")
-            st.write("This user belongs to a group with similar physiological connectivity.")
+              user_label = all_labels[-1] # The last row is our new user
+              st.success(f"🎯 Hierarchical Cluster Identified: {user_label}")
+              st.write("This user belongs to a group with similar physiological connectivity.")
 
-# --- TAB 3: DBSCAN (Anomaly Detection) ---
-with tab_db:
-    st.info("DBSCAN checks if the user fits into a dense behavior group or is an 'Outlier'.")
-    if st.button("🚀 Identify Cluster (DBSCAN)", use_container_width=True):
-        with st.spinner("Analyzing Density..."):
-            # Combine original 'df' with the new row
-            combined_df = pd.concat([df[cluster_columns], new_user_row], ignore_index=True)
-            combined_scaled = scaler_cluster.transform(combined_df)
-            combined_pca = pca_model.transform(combined_scaled)
+    # --- TAB 3: DBSCAN (Anomaly Detection) ---
+    with tab_db:
+      st.info("DBSCAN checks if the user fits into a dense behavior group or is an 'Outlier'.")
+      if st.button("🚀 Identify Cluster (DBSCAN)", use_container_width=True):
+          with st.spinner("Analyzing Density..."):
+              # Combine original 'df' with the new row
+              combined_df = pd.concat([df[cluster_columns], new_user_row], ignore_index=True)
+              combined_scaled = scaler_cluster.transform(combined_df)
+              combined_pca = pca_model.transform(combined_scaled)
 
-            # Re-fit with standard parameters
-            db_model = DBSCAN(eps=0.8, min_samples=5)
-            all_labels = db_model.fit_predict(combined_pca)
+              # Re-fit with standard parameters
+              db_model = DBSCAN(eps=0.8, min_samples=5)
+              all_labels = db_model.fit_predict(combined_pca)
             
-            user_label = all_labels[-1]
+              user_label = all_labels[-1]
 
-            if user_label == -1:
-                st.error("⚠️ Persona Identified: Outlier / Anomaly")
-                st.write("This user's data is significantly different from the average user base.")
-            else:
-                st.success(f"🎯 DBSCAN Cluster Identified: {user_label}")
-                st.write("The user is part of a high-density behavioral group.")
+              if user_label == -1:
+                 st.error("⚠️ Persona Identified: Outlier / Anomaly")
+                 st.write("This user's data is significantly different from the average user base.")
+              else:
+                 st.success(f"🎯 DBSCAN Cluster Identified: {user_label}")
+                 st.write("The user is part of a high-density behavioral group.")
